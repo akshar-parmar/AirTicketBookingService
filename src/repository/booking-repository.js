@@ -20,11 +20,34 @@ class BookingRepository{
         }
     }
 
-    async update(data){
+    async update(bookingId, data){
         try {
+            await Booking.update(data,{
+                where:{
+                    id:bookingId
+                }
+            });
+            return true;
+        } catch (error) {
+            throw new AppError(
+                'RepositoryError',
+                'Cannot create booking',
+                'There was some issue updating the booking please try again later',
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    async statusUpdate(bookingId,data){
+        try {
+            const BookingObject = await Booking.findByPk(bookingId);
+            BookingObject.status = data.status;
+            await BookingObject.save();
+            return BookingObject;
             
         } catch (error) {
-            
+            console.log("Something went wrong in the repository layer");
+            throw error;
         }
     }
 }
