@@ -4,6 +4,8 @@ const {FLIGHT_SERVICE_PATH} = require('../config/serverConfig');
 const {ServiceError} = require('../utils/errors/index');
 const {StatusCodes} = require('http-status-codes');
 
+const sendMessageToQueue = require('../utils/ticket-helper');
+
 class BookingService {
     constructor(){
         this.bookingRepository = new BookingRepository();
@@ -26,7 +28,12 @@ class BookingService {
             const totalCost =  priceOfTheFlight * data.noOfSeats;
             const bookingPayload = {...data,totalCost};
             const booking = await this.bookingRepository.create(bookingPayload);
-            //console.log('BOOKING',booking);
+            
+            console.log('BOOKING',booking);
+
+            //once the booking is done we need to send the info to reminder service
+            //we will be sending it to rabbitmq and then reminder service will take if from them
+            const mailSend = await sendMessageToQueue(booking);
             
             const updateFlightRequestURL= `${FLIGHT_SERVICE_PATH}/api/v1/flights/${flightId}`;
             //console.log(updateFlightRequestURL);
